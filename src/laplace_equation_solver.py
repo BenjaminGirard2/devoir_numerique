@@ -38,4 +38,21 @@ class LaplaceEquationSolver:
             the wires and in the empty space between the wires, while the field V always gives V(x, y) = 0 if (x, y)
             is not a point belonging to an electric wire.
         """
-        raise NotImplementedError
+
+        bord_H = np.array([constant_voltage[0, 1:-1]])
+        bord_D = np.array([constant_voltage[:-1, -1]]).T
+        bord_B = np.array([constant_voltage[-1, 1:]])
+        bord_G = np.array([constant_voltage[:, 0]]).T
+
+        for i in range(0, self.nb_iterations):
+
+            Champs_Moy = (constant_voltage[2:, 1:-1] + constant_voltage[1:-1, 2:] + constant_voltage[:-2, 1:-1] + constant_voltage[1:-1, :-2])/4
+
+            Transition_Matrice = np.concatenate((bord_H, Champs_Moy))
+            Transition_Matrice = np.concatenate((Transition_Matrice, bord_D), axis=1)
+            Transition_Matrice = np.concatenate((Transition_Matrice, bord_B))
+            Transition_Matrice = np.concatenate((bord_G, Transition_Matrice), axis=1)
+
+            constant_voltage = ScalarField(Transition_Matrice)
+
+        return constant_voltage
