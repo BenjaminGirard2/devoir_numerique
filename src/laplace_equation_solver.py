@@ -1,5 +1,5 @@
 import numpy as np
-
+from pandas import array
 from src.fields import ScalarField
 
 
@@ -39,20 +39,53 @@ class LaplaceEquationSolver:
             is not a point belonging to an electric wire.
         """
 
-        bord_H = np.array([constant_voltage[0, 1:-1]])
-        bord_D = np.array([constant_voltage[:-1, -1]]).T
-        bord_B = np.array([constant_voltage[-1, 1:]])
-        bord_G = np.array([constant_voltage[:, 0]]).T
+        #Le but de cette boucle est de trouver les valeurs de voltage qui sont fixes pour éviter de les perdre après la moyenne.
 
-        for i in range(0, self.nb_iterations):
+        nonZero_voltage_list = []
 
-            Champs_Moy = (constant_voltage[2:, 1:-1] + constant_voltage[1:-1, 2:] + constant_voltage[:-2, 1:-1] + constant_voltage[1:-1, :-2])/4
+        for row_number, row in enumerate(constant_voltage):
+            for column_number, voltage_value in enumerate(row):
+                if voltage_value != 0:
+                    nonZero_voltage_list.append([column_number, row_number, voltage_value])
 
-            Transition_Matrice = np.concatenate((bord_H, Champs_Moy))
-            Transition_Matrice = np.concatenate((Transition_Matrice, bord_D), axis=1)
-            Transition_Matrice = np.concatenate((Transition_Matrice, bord_B))
-            Transition_Matrice = np.concatenate((bord_G, Transition_Matrice), axis=1)
 
-            constant_voltage = ScalarField(Transition_Matrice)
+        horizontal_empty_array = np.zeros((1, column_number+1))
+        vertical_empty_array = np.zeros((1, row_number+1)).T
 
-        return constant_voltage
+
+        for i in range(0, self):
+            Decal_D = np.concatenate((vertical_empty_array, constant_voltage[:, :-1]), axis=1)
+            Decal_G = np.concatenate((constant_voltage[:, 1:], vertical_empty_array), axis=1)
+            Decal_H = np.concatenate((constant_voltage[1:, :], horizontal_empty_array), axis=0)
+            Decal_B = np.concatenate((horizontal_empty_array, constant_voltage[:-1, :]), axis=0)
+
+
+            constant_voltage = (Decal_D + Decal_G + Decal_H + Decal_B)/4
+
+            for value in nonZero_voltage_list:
+                constant_voltage[value[1], value[0]]= value[2]
+            
+        return ScalarField(constant_voltage)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

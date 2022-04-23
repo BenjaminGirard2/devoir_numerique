@@ -34,7 +34,7 @@ class TestWorld(unittest.TestCase):
         self.assertAlmostEqual(computed_value[0], true_value[0])
         self.assertAlmostEqual(computed_value[1], true_value[1])
         self.assertAlmostEqual(computed_value[2], true_value[2])
-
+        
     def testShouldReturnTheRightPotentialAtCenter(self):
         true_value = -0.1573155955205982
         computed_value = self.world._potential[self.CENTER]

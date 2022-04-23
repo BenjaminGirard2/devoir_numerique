@@ -1,5 +1,7 @@
+from audioop import cross
 import numpy as np
 from scipy.constants import mu_0, pi
+from math import sqrt
 
 from src.fields import VectorField
 
@@ -27,5 +29,48 @@ class BiotSavartEquationSolver:
             A vector field B : ℝ² → ℝ³ ; (x, y) → (B_x(x, y), B_y(x, y), B_z(x, y)), where B_x(x, y), B_y(x, y) and
             B_z(x, y) are the 3 components of the magnetic vector at a given point (x, y) in space. Note that
             B_x = B_y = 0 is always True in our 2D world.
-        """
-        raise NotImplementedError
+        """   
+
+
+# La grande majorité du champs verctoriel du courant est nul donc on a somme que sur les point ou il y a du courant. 
+
+
+        nonZero_i_vertor_list = []
+
+
+        for row_number, row in enumerate(electric_current):
+            for column_number, current_vertor in enumerate(row):
+                if current_vertor[0] != 0 or current_vertor[1] != 0:
+                    nonZero_i_vertor_list.append([row_number, column_number, current_vertor])
+
+        B_field = np.array([[(0., 0., 0.)]*(row_number+1)]*(column_number+1))
+        
+        for x_position in range(0, row_number+1):
+            for y_position in range(0, column_number+1):
+                
+                B_vector = np.array((0., 0., 0.))
+
+                for i_vector in nonZero_i_vertor_list:
+                    r_vector = np.array([(x_position-i_vector[0])*-1, (y_position-i_vector[1])*-1, 0])
+
+                    if np.linalg.norm(r_vector) == 0:
+                        continue
+
+                    r_unit_vector = r_vector/np.linalg.norm(r_vector)
+
+                    r_distance2 = (r_vector[0])**2 + (r_vector[1])**2
+
+                    B_vector += (np.cross(r_unit_vector, i_vector[2]))/r_distance2
+                    
+                    if x_position ==  37 and y_position == 14:
+                        print(B_vector[2])
+
+                B_field[y_position][x_position] = B_vector
+
+        return VectorField(B_field)*(mu_0/(4*pi))
+
+#VectorField(B_field).z.show(title="Magnetic field (z component)")
+
+
+
+
